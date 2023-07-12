@@ -1,0 +1,58 @@
+---
+title: "test"
+output: html_document
+date: "2023-07-12"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(gganimate)
+library(usmap)
+library(mapview)
+library(maps)
+library(mapdata)
+library(maptools)  #for shapefiles
+library(scales)  #for transparency
+
+```
+
+```{r}
+
+# Filter and select only lobster
+trawlnewdata <- data6 |>
+  mutate(lobsterwtcpue = `wtcpue.Homarus americanus`) |>
+  select(lobsterwtcpue, lon, lat, year)
+
+```
+
+```{r}
+trawldata <- trawlnewdata |>
+  mutate(latmodify1 = as.double(str_sub(lat, 0, 2))) |>
+  mutate(latmodify2 = lat - latmodify1) |>
+  mutate(latmodify3 = case_when(latmodify2 >= 0 & latmodify2 < 0.5 ~ 0.25,
+                                latmodify2 >= 0.5 & latmodify2 < 1 ~ 0.75)) |>
+  mutate(lat_new = latmodify1 + latmodify3)|>
+  mutate(lonmodify1 = as.double(str_sub(lon, 0, 4))) |>
+  mutate(lonmodify2 = lon - lonmodify1) |>
+  mutate(lonmodify3 = case_when(lonmodify2 <= 0 & lonmodify2 > -0.5 ~ -0.25,
+                                lonmodify2 <= -0.5 & lonmodify2 > -1 ~ -0.75)) |>
+  mutate(lon_new = lonmodify1 + lonmodify3) |>
+  select(year, lat_new, lon_new, lobsterwtcpue) |>
+  unite("lon_lat", lon_new:lat_new, sep= ",",remove = FALSE) |>
+  summarise(avgwtc = mean(lobsterwtcpue), .by = c(year, lon_lat)) |>
+  separate(lon_lat, into = c("lon", "lat"), sep = ",", convert = TRUE)
+
+
+
+
+# ggplot(processdata, aes(x = as.double(lon), y = as.double(lat), fill = avgwtc)) +
+#   geom_tile(alpha = 0.6) +
+#   transition_time(year) +
+#   scale_fill_gradient(low="lightblue", high="red")
+
+
+
+```
+
