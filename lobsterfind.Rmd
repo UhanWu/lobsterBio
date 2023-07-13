@@ -31,9 +31,7 @@ existdata <- existnewdata |>
   separate(lon_lat, into = c("lon", "lat"), sep = ",", convert = TRUE)
 
 
-
 ```
-
 
 
 ```{r}
