@@ -31,13 +31,19 @@ trawlnewdata <- data6 |>
 trawldata <- trawlnewdata |>
   mutate(latmodify1 = as.double(str_sub(lat, 0, 2))) |>
   mutate(latmodify2 = lat - latmodify1) |>
-  mutate(latmodify3 = case_when(latmodify2 >= 0 & latmodify2 < 0.5 ~ 0.25,
-                                latmodify2 >= 0.5 & latmodify2 < 1 ~ 0.75)) |>
+  mutate(latmodify3 = case_when(
+                      latmodify2 >= 0 & latmodify2 < 0.25 ~ 0.125,
+                      latmodify2 >= 0.25 & latmodify2 < 0.5 ~ 0.375,
+                      latmodify2 >= 0.5 & latmodify2 < 0.75 ~ 0.625,
+                      latmodify2 >= 0.75 & latmodify2 < 1 ~ 0.875)) |>
   mutate(lat_new = latmodify1 + latmodify3)|>
   mutate(lonmodify1 = as.double(str_sub(lon, 0, 4))) |>
   mutate(lonmodify2 = lon - lonmodify1) |>
-  mutate(lonmodify3 = case_when(lonmodify2 <= 0 & lonmodify2 > -0.5 ~ -0.25,
-                                lonmodify2 <= -0.5 & lonmodify2 > -1 ~ -0.75)) |>
+  mutate(lonmodify3 = case_when(
+                      lonmodify2 <= -0 & lonmodify2 > -0.25 ~ -0.125,
+                      lonmodify2 <= -0.25 & lonmodify2 > -0.5 ~ -0.375,
+                      lonmodify2 <= -0.5 & lonmodify2 > -0.75 ~ -0.625,
+                      lonmodify2 <= -0.75 & lonmodify2 > -1 ~ -0.875)) |>
   mutate(lon_new = lonmodify1 + lonmodify3) |>
   select(year, lat_new, lon_new, lobsterwtcpue) |>
   unite("lon_lat", lon_new:lat_new, sep= ",",remove = FALSE) |>
@@ -57,35 +63,36 @@ us_borders <- map_data("state")
 trawlplot <- trawldata |>
   unite("lon_lat", lon:lat, sep= ",",remove = FALSE) |>
   summarise(avgwtc_all = mean(avgwtc), .by = lon_lat) |>
-   separate(lon_lat, into = c("lon", "lat"), sep = ",", convert = TRUE) |>
-  ggplot(aes(x = lon, y = lat, fill = avgwtc_all)) + 
+  separate(lon_lat, into = c("lon", "lat"), sep = ",", convert = TRUE) |>
+  mutate(lobtest = if_else(avgwtc_all > 0, TRUE, FALSE)) |>
+  ggplot(aes(x = lon, y = lat, fill = lobtest)) + 
   geom_polygon(data = us_map, aes(x = long, y = lat, group = group), fill = "lightgray", color = "black")+
   geom_polygon(data = us_borders, aes(x = long, y = lat, group = group), fill = NA, color = "darkgreen")+
   geom_tile(alpha = 0.8) +
-  scale_fill_gradient(low="blue", high="red", na.value = "transparent", breaks = seq(0, 80, 10)) +
   coord_cartesian(xlim = c(-185, -50), ylim = c(25, 70))+
   theme(legend.position = 'top') + 
-  guides(fill = guide_colorbar(barwidth = 30, barheight = 0.5)) +
   labs(fill = "")
 
-saveRDS(trawlplot, file = "trawlplot.rds")
+saveRDS(trawlplot, "trawlplot.rds")
+
+
 ```
 
 ```{r}
 trawlzoomplot <- trawldata |>
   unite("lon_lat", lon:lat, sep= ",",remove = FALSE) |>
   summarise(avgwtc_all = mean(avgwtc), .by = lon_lat) |>
-   separate(lon_lat, into = c("lon", "lat"), sep = ",", convert = TRUE) |>
-  ggplot(aes(x = lon, y = lat, fill = avgwtc_all)) + 
+  separate(lon_lat, into = c("lon", "lat"), sep = ",", convert = TRUE) |>
+  mutate(lobtest = if_else(avgwtc_all > 0, TRUE, FALSE)) |>
+  ggplot(aes(x = lon, y = lat, fill = lobtest)) + 
   geom_polygon(data = us_map, aes(x = long, y = lat, group = group), fill = "lightgray", color = "black")+
   geom_polygon(data = us_borders, aes(x = long, y = lat, group = group), fill = NA, color = "darkgreen")+
   geom_tile(alpha = 0.8) +
-  scale_fill_gradient(low="blue", high="red", na.value = "transparent", breaks = seq(0, 80, 10)) +
   coord_cartesian(xlim = c(-80, -55), ylim = c(32, 48))+
   theme(legend.position = 'right') + 
-  guides(fill = guide_colorbar(barwidth = 1, barheight = 15)) +
   labs(fill = "")
 
-saveRDS(trawlzoomplot, file = "trawlzoomplot.rds")
+saveRDS(trawlzoomplot, "trawlzoomplot.rds")
+
 ```
 
