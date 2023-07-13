@@ -11,6 +11,8 @@ existnewdata <- data10 |>
   mutate(lobsterwtcpue = `wtcpue.Homarus.americanus`) |>
   select(lobsterwtcpue, lon, lat, year)
 
+
+
 ```
 
 ```{r}
