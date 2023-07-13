@@ -50,7 +50,7 @@ trawldata <- trawlnewdata |>
   summarise(avgwtc = mean(lobsterwtcpue), .by = c(year, lon_lat)) |>
   separate(lon_lat, into = c("lon", "lat"), sep = ",", convert = TRUE)
 
-
+save(trawldata, file = "trawldata.RData")
 
 ```
 
