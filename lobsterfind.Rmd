@@ -11,6 +11,9 @@ existnewdata <- data10 |>
   mutate(lobsterwtcpue = `wtcpue.Homarus.americanus`) |>
   select(lobsterwtcpue, lon, lat, year)
 
+data10|>
+  select(`wtcpue.Dfo.gorgonocephalidae.Asteronychidae.f.(6300)`, lon, lat) |>
+  filter(`wtcpue.Dfo.gorgonocephalidae.Asteronychidae.f.(6300)`  != 0)
 
 
 ```

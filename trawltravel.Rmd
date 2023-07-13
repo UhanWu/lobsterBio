@@ -64,16 +64,17 @@ trawlplot <- trawldata |>
   unite("lon_lat", lon:lat, sep= ",",remove = FALSE) |>
   summarise(avgwtc_all = mean(avgwtc), .by = lon_lat) |>
   separate(lon_lat, into = c("lon", "lat"), sep = ",", convert = TRUE) |>
-  mutate(lobtest = if_else(avgwtc_all > 0, TRUE, FALSE)) |>
+  mutate(lobtest = if_else(avgwtc_all > 0, "WTCPUE > 0", "Trawl Area")) |>
   ggplot(aes(x = lon, y = lat, fill = lobtest)) + 
-  geom_polygon(data = us_map, aes(x = long, y = lat, group = group), fill = "lightgray", color = "black")+
-  geom_polygon(data = us_borders, aes(x = long, y = lat, group = group), fill = NA, color = "darkgreen")+
+  geom_polygon(data = us_map, aes(x = long, y = lat, group = group), fill = "darkgray", color = "black")+
+  geom_polygon(data = us_borders, aes(x = long, y = lat, group = group), fill = "lightgray", color = "darkgreen")+
   geom_tile(alpha = 0.8) +
   coord_cartesian(xlim = c(-185, -50), ylim = c(25, 70))+
   theme(legend.position = 'top') + 
-  labs(fill = "")
+  labs(fill = "") + 
+  labs(fill = "", x = "Longitude (in degrees)", y = "Latitude (in degrees)")
 
-saveRDS(trawlplot, "trawlplot.rds")
+
 
 
 ```
@@ -83,16 +84,20 @@ trawlzoomplot <- trawldata |>
   unite("lon_lat", lon:lat, sep= ",",remove = FALSE) |>
   summarise(avgwtc_all = mean(avgwtc), .by = lon_lat) |>
   separate(lon_lat, into = c("lon", "lat"), sep = ",", convert = TRUE) |>
-  mutate(lobtest = if_else(avgwtc_all > 0, TRUE, FALSE)) |>
+  mutate(lobtest = if_else(avgwtc_all > 0, "WTCPUE > 0", "Trawl Area")) |>
   ggplot(aes(x = lon, y = lat, fill = lobtest)) + 
-  geom_polygon(data = us_map, aes(x = long, y = lat, group = group), fill = "lightgray", color = "black")+
-  geom_polygon(data = us_borders, aes(x = long, y = lat, group = group), fill = NA, color = "darkgreen")+
+  geom_polygon(data = us_map, aes(x = long, y = lat, group = group), fill = "darkgray", color = "black")+
+  geom_polygon(data = us_borders, aes(x = long, y = lat, group = group), fill = "lightgray", color = "darkgreen")+
   geom_tile(alpha = 0.8) +
   coord_cartesian(xlim = c(-80, -55), ylim = c(32, 48))+
   theme(legend.position = 'right') + 
-  labs(fill = "")
+  labs(fill = "", x = "Longitude (in degrees)", y = "Latitude (in degrees)")
 
-saveRDS(trawlzoomplot, "trawlzoomplot.rds")
 
+
+```
+
+```{r}
+print(fitgam3)
 ```
 
