@@ -29,10 +29,34 @@ existdata <- existnewdata |>
   unite("lon_lat", lon_new:lat_new, sep= ",",remove = FALSE) |>
   summarise(avgwtc = mean(lobsterwtcpue), .by = c(year, lon_lat)) |>
   separate(lon_lat, into = c("lon", "lat"), sep = ",", convert = TRUE)
+
+
+
 ```
 
 
 
+```{r}
+us_map <- map_data("world")
+us_borders <- map_data("state")
+
+existplot <- existdata |>
+  unite("lon_lat", lon:lat, sep= ",",remove = FALSE) |>
+  summarise(avgwtc_all = mean(avgwtc), .by = lon_lat) |>
+   separate(lon_lat, into = c("lon", "lat"), sep = ",", convert = TRUE) |>
+  ggplot(aes(x = lon, y = lat, fill = avgwtc_all)) + 
+  geom_polygon(data = us_map, aes(x = long, y = lat, group = group), fill = "lightgray", color = "black")+
+  geom_polygon(data = us_borders, aes(x = long, y = lat, group = group), fill = NA, color = "darkgreen")+
+  geom_tile(alpha = 0.8) +
+  scale_fill_gradient(low="blue", high="red", na.value = "transparent", breaks = seq(0, 120, 10)) +
+  coord_cartesian(xlim = c(-80, -55), ylim = c(32, 48))+
+  theme(legend.position = 'right') + 
+  guides(fill = guide_colorbar(barwidth = 1, barheight = 18)) +
+  labs(fill = "")
+
+saveRDS(existplot, file = "existplot.rds")
+
+```
 
 
 
