@@ -20,10 +20,25 @@ library(scales)  #for transparency
 
 ```{r}
 
+lobsterlist <- c(`wtcpue.Homarus.americanus`, `year`, `lat`, `wtcpue.Dichelopandalus.leptocerus`,
+    `wtcpue.Asterias.rubens`, `wtcpue.Crossaster.papposus` ,
+    `wtcpue.Cucumaria.frondosa` , `wtcpue.Enchelyopus.cimbrius` ,
+    `wtcpue.Dfo.bryozoans.ectoprocta` , `wtcpue.Hippoglossus.hippoglossus` ,
+    region , `wtcpue.Hippoglossoides.platessoides`, `wtcpue.Arctica.islandica` ,
+    `wtcpue.Hydrozoa` , `wtcpue.Dfo.gorgonocephalidae.Asteronychidae.f.(6300)` ,
+    `wtcpue.Leptasterias`, `wtcpue.Neptunea.lyrata`)
+
 # Filter and select only lobster
 trawlnewdata <- data6 |>
-  mutate(lobsterwtcpue = `wtcpue.Homarus americanus`) |>
-  select(lobsterwtcpue, lon, lat, year)
+  select(year, lat, region, lon, depth, `wtcpue.Homarus americanus`, `wtcpue.Dichelopandalus leptocerus`,
+    `wtcpue.Asterias rubens`, `wtcpue.Crossaster papposus` ,
+    `wtcpue.Cucumaria frondosa` , `wtcpue.Enchelyopus cimbrius` ,
+    `wtcpue.Dfo:bryozoans ectoprocta` , `wtcpue.Hippoglossus hippoglossus` ,
+    `wtcpue.Hippoglossoides platessoides`, `wtcpue.Arctica islandica` ,
+    `wtcpue.Hydrozoa` , `wtcpue.Dfo:gorgonocephalidae,Asteronychidae f.(6300)` ,
+    `wtcpue.Leptasterias`, `wtcpue.Neptunea lyrata`)
+
+glimpse(data6)
 
 ```
 
@@ -45,12 +60,37 @@ trawldata <- trawlnewdata |>
                       lonmodify2 <= -0.5 & lonmodify2 > -0.75 ~ -0.625,
                       lonmodify2 <= -0.75 & lonmodify2 > -1 ~ -0.875)) |>
   mutate(lon_new = lonmodify1 + lonmodify3) |>
-  select(year, lat_new, lon_new, lobsterwtcpue) |>
+  select(year, lat_new, lon_new, region, depth, `wtcpue.Homarus americanus`, `wtcpue.Dichelopandalus leptocerus`,
+    `wtcpue.Asterias rubens`, `wtcpue.Crossaster papposus` ,
+    `wtcpue.Cucumaria frondosa` , `wtcpue.Enchelyopus cimbrius` ,
+    `wtcpue.Dfo:bryozoans ectoprocta` , `wtcpue.Hippoglossus hippoglossus` ,
+    `wtcpue.Hippoglossoides platessoides`, `wtcpue.Arctica islandica` ,
+    `wtcpue.Hydrozoa` , `wtcpue.Dfo:gorgonocephalidae,Asteronychidae f.(6300)` ,
+    `wtcpue.Leptasterias`, `wtcpue.Neptunea lyrata`) |>
   unite("lon_lat", lon_new:lat_new, sep= ",",remove = FALSE) |>
-  summarise(avgwtc = mean(lobsterwtcpue), .by = c(year, lon_lat)) |>
-  separate(lon_lat, into = c("lon", "lat"), sep = ",", convert = TRUE)
+  separate(lon_lat, into = c("lon", "lat"), sep = ",", convert = TRUE) |>
+  select(year, lat, lon, region, depth, `wtcpue.Homarus americanus`, `wtcpue.Dichelopandalus leptocerus`,
+    `wtcpue.Asterias rubens`, `wtcpue.Crossaster papposus` ,
+    `wtcpue.Cucumaria frondosa` , `wtcpue.Enchelyopus cimbrius` ,
+    `wtcpue.Dfo:bryozoans ectoprocta` , `wtcpue.Hippoglossus hippoglossus` ,
+    `wtcpue.Hippoglossoides platessoides`, `wtcpue.Arctica islandica` ,
+    `wtcpue.Hydrozoa` , `wtcpue.Dfo:gorgonocephalidae,Asteronychidae f.(6300)` ,
+    `wtcpue.Leptasterias`, `wtcpue.Neptunea lyrata`) |>
+  pivot_longer(cols = `wtcpue.Homarus americanus`: `wtcpue.Dichelopandalus leptocerus`:
+    `wtcpue.Asterias rubens`: `wtcpue.Crossaster papposus` :
+    `wtcpue.Cucumaria frondosa`: `wtcpue.Enchelyopus cimbrius` :
+    `wtcpue.Dfo:bryozoans ectoprocta` : `wtcpue.Hippoglossus hippoglossus` :
+    `wtcpue.Hippoglossoides platessoides`: `wtcpue.Arctica islandica` :
+    `wtcpue.Hydrozoa` : `wtcpue.Dfo:gorgonocephalidae,Asteronychidae f.(6300)` :
+    `wtcpue.Leptasterias`: `wtcpue.Neptunea lyrata`,
+    names_to = 'spp', values_to = 'density') |>
+  summarise(density_avg = mean(density), depth_avg = mean(depth), .by = c(year, lat, lon, region, spp)) |>
+  pivot_wider(
+    names_from = spp,
+    values_from = density_avg
+  )
 
-save(trawldata, file = "trawldata.RData")
+save(trawldata, file = "datablocked.RData")
 
 ```
 
@@ -72,7 +112,9 @@ trawlplot <- trawldata |>
   coord_cartesian(xlim = c(-185, -50), ylim = c(25, 70))+
   theme(legend.position = 'top') + 
   labs(fill = "") + 
-  labs(fill = "", x = "Longitude (in degrees)", y = "Latitude (in degrees)")
+  labs(fill = "", x = "Longitude (in degrees)", y = "Latitude (in degrees)") + 
+  geom_text(x = -75, y = 45, label = "USA", color = "black", size = 4, fontface = "bold") +
+  geom_text(x = -65, y = 45, label = "Canada", color = "black", size = 4, fontface = "bold")
 
 
 
@@ -82,18 +124,22 @@ trawlplot <- trawldata |>
 ```{r}
 trawlzoomplot <- trawldata |>
   unite("lon_lat", lon:lat, sep= ",",remove = FALSE) |>
+  mutate(avgwtc = `wtcpue.Homarus americanus`) |>
   summarise(avgwtc_all = mean(avgwtc), .by = lon_lat) |>
   separate(lon_lat, into = c("lon", "lat"), sep = ",", convert = TRUE) |>
-  mutate(lobtest = if_else(avgwtc_all > 0, "WTCPUE > 0", "Trawl Area")) |>
+  mutate(lobtest = if_else(avgwtc_all > 0, "Lobster WTCPUE > 0", "Trawl Area")) |>
   ggplot(aes(x = lon, y = lat, fill = lobtest)) + 
   geom_polygon(data = us_map, aes(x = long, y = lat, group = group), fill = "darkgray", color = "black")+
   geom_polygon(data = us_borders, aes(x = long, y = lat, group = group), fill = "lightgray", color = "darkgreen")+
   geom_tile(alpha = 0.8) +
   coord_cartesian(xlim = c(-80, -55), ylim = c(32, 48))+
   theme(legend.position = 'right') + 
-  labs(fill = "", x = "Longitude (in degrees)", y = "Latitude (in degrees)")
+  labs(fill = "", x = "Longitude (in degrees)", y = "Latitude (in degrees)") + 
+  geom_text(x = -75, y = 41.5, label = "The United States", color = "black", size = 8, 
+            fontface = "bold", angle = 40) +
+  geom_text(x = -75, y = 46.5, label = "Canada", color = "black", size = 8, fontface = "bold")
 
-
+trawlzoomplot
 
 ```
 
