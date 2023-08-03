@@ -90,7 +90,7 @@ trawldata <- trawlnewdata |>
     values_from = density_avg
   )
 
-save(trawldata, file = "datablocked.RData")
+# save(trawldata, file = "datablocked.RData")
 
 ```
 
