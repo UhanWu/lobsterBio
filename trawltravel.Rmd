@@ -93,6 +93,53 @@ trawldata <- trawlnewdata |>
 # save(trawldata, file = "datablocked.RData")
 
 ```
+```{r}
+trawldata_transformed <- 
+  
+  trawldata |>
+  select(year, lon, lat, depth_avg, `wtcpue.Homarus americanus`, 
+         `wtcpue.Crossaster papposus`, `wtcpue.Dfo:bryozoans ectoprocta`, `wtcpue.Neptunea lyrata`)
+
+%>%
+  pivot_longer(cols = `wtcpue.Homarus americanus`:`wtcpue.Neptunea lyrata`,
+               names_to = 'spp', values_to = 'density') %>%
+  summarise(avgden = mean(density), .by = c(spp, depth_avg)) |>
+  filter(spp == 'wtcpue.Homarus americanus') |>
+  ggplot(aes(x = depth_avg, y = avgden)) + 
+  geom_point() 
+
+
+
+
+# Create the density plot with multiple curves
+ggplot(trawldata_transformed, aes(x = depth_avg, y = avgden, color = spp, level = spp)) + 
+  geom_density(aes(y = after_stat(count)), alpha = 0.5) +  # Use y = ..density.. aesthetic
+  labs(title = "Species Distribution in Terms of Average Depth",
+       x = "Average Depth", y = "Density",
+       color = "Species") +
+  theme_minimal() 
+
+
+
+  
+  # Scatter plot with overlapping points and depth facetting
+ggplot(aes(x = lon, y = lat)) +
+  geom_point(aes(size = `wtcpue.Homarus americanus`, color = "Homarus americanus"), alpha = 0.5) +
+  geom_point(aes(size = `wtcpue.Crossaster papposus`, color = "Crossaster papposus"), alpha = 0.5) +
+  geom_point(aes(size = `wtcpue.Dfo:bryozoans ectoprocta`, color = "Dfo:bryozoans ectoprocta"), alpha = 0.5) +
+  geom_point(aes(size = `wtcpue.Neptunea lyrata`, color = "Neptunea lyrata"), alpha = 0.5) +
+  scale_size_continuous(name = "Abundance", breaks = c(0, 100, 200, 300, 400), labels = scales::comma) +
+  scale_color_manual(values = c("Homarus americanus" = "red", 
+                                "Crossaster papposus" = "blue",
+                                "Dfo:bryozoans ectoprocta" = "green",
+                                "Neptunea lyrata" = "purple")) +
+  labs(title = "Species Spatial Distribution by Depth",
+       x = "Longitude", y = "Latitude",
+       color = "Species") +
+  theme_minimal() +
+  facet_wrap(~ depth_avg, ncol = 2)+  # Facet by depth levels with 2 columns
+ coord_cartesian(xlim = c(-80, -55), ylim = c(32, 48))
+```
 
 
 ```{r}
@@ -143,7 +190,56 @@ trawlzoomplot
 
 ```
 
+
+```{r}
+trawlzoomplot2 <- trawlnewdata |>
+  unite("lon_lat", `lon`:`lat`, sep= ",",remove = FALSE) |>
+  mutate(avgwtc = `wtcpue.Homarus americanus`) |>
+  summarise(avgwtc_all = mean(avgwtc), .by = lon_lat) |>
+  separate(lon_lat, into = c("lon", "lat"), sep = ",", convert = TRUE) |>
+  mutate(lobtest = if_else(avgwtc_all > 0, "Lobster WTCPUE > 0", "Trawl Area")) |>
+  ggplot(aes(x = lon, y = lat, fill = lobtest)) + 
+  geom_polygon(data = us_map, aes(x = long, y = lat, group = group), fill = "darkgray", color = "black")+
+  geom_polygon(data = us_borders, aes(x = long, y = lat, group = group), fill = "lightgray", color = "darkgreen")+
+  geom_tile(alpha = 0.8) +
+  coord_cartesian(xlim = c(-80, -55), ylim = c(32, 48))+
+  theme(legend.position = 'right') + 
+  labs(fill = "", x = "Longitude (in degrees)", y = "Latitude (in degrees)") + 
+  geom_text(x = -75, y = 41.5, label = "The United States", color = "black", size = 8, 
+            fontface = "bold", angle = 40) +
+  geom_text(x = -75, y = 46.5, label = "Canada", color = "black", size = 8, fontface = "bold")
+
+trawlzoomplot
+```
+
+
 ```{r}
 print(fitgam3)
 ```
+```{r}
+trawldata |>
+  select(year, lon, lat, depth_avg, `wtcpue.Homarus americanus`, 
+         `wtcpue.Crossaster papposus`, `wtcpue.Dfo:bryozoans ectoprocta`, `wtcpue.Neptunea lyrata`)
+```
+
+
+
+
+```{r}
+trawldata |>
+  select(year, lon, lat, depth_avg,
+         `wtcpue.Homarus americanus`,
+         `wtcpue.Crossaster papposus`,
+         `wtcpue.Dfo:bryozoans ectoprocta`,
+         `wtcpue.Neptunea lyrata`)
+```
+
+
+
+
+
+
+
+
+
 

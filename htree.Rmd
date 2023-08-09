@@ -8,10 +8,77 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
-library(htree)
+library(ggplot2)
+library(sf)
+library(raster)
+
 ```
 
 ```{r}
-trawldata
+# Assume your data frame is named trawldata
+# Correct longitude values outside the valid range
+
+# Ensure longitude values are between -180 and 180 degrees
+
+# Now, proceed to create the spatial points data frame as before
+
+
+
+selected_data <- trawldata |>
+  dplyr::select(year, lon, lat, depth_avg,
+         `wtcpue.Homarus americanus`,
+         `wtcpue.Arctica islandica`,
+         `wtcpue.Crossaster papposus`,
+         `wtcpue.Dfo:bryozoans ectoprocta`,
+         `wtcpue.Neptunea lyrata`) |>
+  mutate(depth_avg = round(depth_avg, 0 )) |>
+  filter(depth_avg < 150) |>
+  summarise(lobsterall = mean(`wtcpue.Homarus americanus`),
+            quahogall = mean(`wtcpue.Arctica islandica`),
+            sunstarall = mean(`wtcpue.Crossaster papposus`),
+            mossall = mean(`wtcpue.Dfo:bryozoans ectoprocta`),
+            whelkall = mean(`wtcpue.Neptunea lyrata`), .by = c(lon, lat, depth_avg)) |>
+  summarise(lobster_horizon = sum(lobsterall),
+            quahog_horizon = sum(quahogall),
+            sunstar_horizon = sum(sunstarall),
+            moss_horizon = sum(mossall),
+            whelk_horizon = sum(whelkall), .by = depth_avg) |>
+  mutate(lobsternorm = lobster_horizon/sum(lobster_horizon),
+         quahognorm = quahog_horizon/sum(quahog_horizon),
+         sunstarnorm = sunstar_horizon/sum(sunstar_horizon),
+         mossnorm = moss_horizon/sum(moss_horizon),
+         whelknorm = whelk_horizon/sum(whelk_horizon)) |>
+  dplyr::select(depth_avg, lobsternorm, quahognorm, sunstarnorm, mossnorm, whelknorm) |>
+  pivot_longer(cols = !depth_avg,
+               names_to = 'specie',
+               values_to = 'density')
+  
+
+trawldata |>
+  filter(`wtcpue.Homarus americanus` > 0) |>
+ggplot( aes(x = `wtcpue.Homarus americanus`)) +
+  geom_histogram(binwidth = 1, fill = "blue", color = "black") +
+  labs(title = "Histogram of Homarus americanus Abundance",
+       x = "Abundance", y = "Frequency") +
+  theme_minimal()
+
++
+  labs(title = "Species Abundance Density Plot",
+       x = "Depth Average", y = "Density",
+       color = "Species")
+
+
+
+
+
+
+
+
 ```
+
+
+
+
+
+
 
